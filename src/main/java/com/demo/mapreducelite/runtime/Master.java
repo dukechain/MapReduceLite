@@ -15,6 +15,11 @@ public class Master extends MessageReceiver implements Runnable {
     }
 
     @Override
+    protected boolean setTerminated() {
+        return false;
+    }
+
+    @Override
     protected void messageHander(Object obj) {
         Action msg = (Action) obj;
 

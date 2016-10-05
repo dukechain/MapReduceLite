@@ -21,7 +21,14 @@ public class ConfigurationTest {
 
     @Test
     public void loadPropertiesTest(){
-        config.loadProperties(new File("conf/config.properties.test"));
+        System.out.println("classpath路径： "+ConfigurationTest.class.getClassLoader().getResource("").getPath());
+        System.out.println("当前类加载路径： "+ConfigurationTest.class.getResource("").getPath());
+
+
+        String url = ConfigurationTest.class.getClassLoader().getResource("./config.properties.test").getPath();
+
+        System.out.println(url);
+        config.loadProperties(new File(url));
 
         Assert.assertEquals(config.properties.getProperty("hostname"), "localhost");
          /*System.out.println("url:" + properties.getProperty("url"));

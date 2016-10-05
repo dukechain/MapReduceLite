@@ -4,7 +4,8 @@ import java.io.File
 import java.util
 
 import com.demo.mapreducelite.core.IO.InputOutputFormat.RecordFormat.RecordFormat
-import com.demo.mapreducelite.core.config.GlobalConfiguration
+import com.demo.mapreducelite.core.Util.FileUtil
+import com.demo.mapreducelite.core.config.{LocalConfiguration, GlobalConfiguration}
 import com.demo.mapreducelite.runtime.JobConfiguration
 import com.demo.mapreducelite.runtime.task.Mapper
 import org.junit.{Test, Before}
@@ -18,7 +19,14 @@ class MapperTest {
   var mapperTest:Mapper = null
 
   @Before def prepare() {
+    val f: File = new File(LocalConfiguration.dir_main_mapreducelite)
+    if (f.exists) {
+      FileUtil.deleteDir(f)
+    }
+
     jobConfig = new JobConfiguration()
+
+    //jobConfig.jobID = System.currentTimeMillis()
         jobConfig.mainClassName = "com.demo.mapreducelite.example.WordCount"
     jobConfig.inputFile = new File("./text.txt")
     jobConfig.inputFormat = new RecordFormat[Int,String]
@@ -27,11 +35,11 @@ class MapperTest {
 
     jobConfig.jarFileLocation = new File("./classes/artifacts/wordcount/wordcount.jar")
 
-    mapperTest = new Mapper(jobConfig)
+    mapperTest = new Mapper(jobConfig,System.currentTimeMillis())
 
     GlobalConfiguration.slave_address_list = new util.ArrayList[String]()
-    GlobalConfiguration.slave_address_list.add("1")
-    GlobalConfiguration.slave_address_list.add("2")
+    GlobalConfiguration.slave_address_list.add("localhost")
+    GlobalConfiguration.slave_address_list.add("127.0.0.1")
 
     jobConfig.numofReduceTasks=2
   }
