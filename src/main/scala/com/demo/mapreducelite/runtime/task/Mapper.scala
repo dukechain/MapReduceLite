@@ -23,7 +23,7 @@ class Mapper extends Runnable {
     this()
     jobconfig = jobConfiguration
     this.mapper_id = mapper_id
-    directory_mapoutput = LocalConfiguration.dir_ShuffleSender + File.separator + jobconfig.jobID + File.separator
+    directory_mapoutput = LocalConfiguration.dir_ShuffleSender + jobconfig.jobID + File.separator
   }
 
   def mapper(inputfile: File, inputFormat: InputFormat, mapFunction: Object, intermediate_outputFormat: OutputFormat): Unit = {

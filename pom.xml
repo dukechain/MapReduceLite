@@ -108,6 +108,34 @@
                     </execution>
                 </executions>
             </plugin>
+            <!--plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>mapreducelite-main</id>
+                        <goals><goal>jar</goal></goals>
+                        <phase>package</phase>
+                        <configuration>
+                            <classifier>mapreducelite-main</classifier>
+                            <includes>
+                                <include>**/java/**</include>
+                                <include>**/scala/**</include>
+                            </includes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>example</id>
+                        <goals><goal>jar</goal></goals>
+                        <phase>package</phase>
+                        <configuration>
+                            <classifier>example</classifier>
+                            <includes>
+                                <include>**/scala-example/**</include>
+                            </includes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
