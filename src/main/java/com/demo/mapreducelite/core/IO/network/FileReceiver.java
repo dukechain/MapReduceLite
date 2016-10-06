@@ -93,4 +93,9 @@ public class FileReceiver extends Server {
             }
         }
     }
+
+    @Override
+    protected boolean setTerminated() {
+        return false;
+    }
 }

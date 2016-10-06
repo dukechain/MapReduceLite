@@ -15,12 +15,16 @@ import java.nio.charset.Charset;
 public class ShuffleSender extends Client implements Runnable {
 
     private final int sender_buffer_size = 100;
-    private File file = null;
+    private File[] files = null;
 
-    public ShuffleSender(String hostname, int port, File file){
+    public ShuffleSender(String hostname, int port){
+        super(hostname,port);
+    }
+
+    public ShuffleSender(String hostname, int port, File[] files){
         super(hostname,port);
 
-        this.file = file;
+        this.files = files;
     }
 
     protected void send_file_to_Server(File file) {
@@ -29,12 +33,12 @@ public class ShuffleSender extends Client implements Runnable {
             FileChannel fileChannel = new FileInputStream(file).getChannel();
             ByteBuffer buffer = ByteBuffer.allocate(sender_buffer_size);
 
-            socketChannel.read(buffer);
-            buffer.flip();
+            //socketChannel.read(buffer);
+            //buffer.flip();
 
-            System.out.println(new String(buffer.array(), 0, buffer.limit(), Charset.forName("utf-8")));
+            //System.out.println(new String(buffer.array(), 0, buffer.limit(), Charset.forName("utf-8")));
 
-            buffer.clear();
+            //buffer.clear();
 
             int num = 0;
 
@@ -46,16 +50,16 @@ public class ShuffleSender extends Client implements Runnable {
 
             if (num == -1) {
                 fileChannel.close();
-                socketChannel.shutdownOutput();
+                //socketChannel.shutdownOutput();
             }
             // accept the response from server
-            socketChannel.read(buffer);
-            buffer.flip();
+            //socketChannel.read(buffer);
+            //buffer.flip();
 
-            System.out.println(new String(buffer.array(), 0, buffer.limit(), Charset.forName("utf-8")));
+            //System.out.println(new String(buffer.array(), 0, buffer.limit(), Charset.forName("utf-8")));
 
             buffer.clear();
-            socketChannel.close();
+            //socketChannel.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -63,7 +67,12 @@ public class ShuffleSender extends Client implements Runnable {
 
     //@Override
     protected void send_Data_to_Server() {
-        try {
+
+        for (int i = 0; i < files.length; i++) {
+            send_file_to_Server(files[i]);
+        }
+
+        /*try {
             FileChannel fileChannel = new FileInputStream(file).getChannel();
             ByteBuffer buffer = ByteBuffer.allocate(sender_buffer_size);
 
@@ -94,14 +103,16 @@ public class ShuffleSender extends Client implements Runnable {
             socketChannel.close();
         } catch (IOException e) {
             e.printStackTrace();
-        }
+        }*/
 
 
     }
 
     @Override
     public void run() {
+        startClient();
         send_Data_to_Server();
+        closeClient();
     }
 
 }

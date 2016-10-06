@@ -1,7 +1,7 @@
 package com.demo.mapreducelite.runtime.shuffle;
 
 import com.demo.mapreducelite.core.IO.network.Server;
-import com.demo.mapreducelite.core.config.LocalConfiguration;
+import com.demo.mapreducelite.runtime.Slave$;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -20,7 +20,7 @@ import java.util.concurrent.Executors;
 /**
  * Created by chenxu on 23.09.16.
  */
-public class ShuffleReceiver extends Server {
+public class ShuffleReceiver extends Server implements Runnable{
 
     private ExecutorService exec = Executors.newFixedThreadPool(2);
 
@@ -29,8 +29,15 @@ public class ShuffleReceiver extends Server {
     //使用Map保存每个连接，当OP_READ就绪时，根据key找到对应的文件对其进行写入。若将其封装成一个类，作为值保存，可以再上传过程中显示进度等等
     Map<SelectionKey, FileChannel> fileMap = new HashMap<SelectionKey, FileChannel>();
 
-    public ShuffleReceiver(int port){
+    File dir = null;
+
+    public ShuffleReceiver(int port, File dir){
         super(port);
+        this.dir =dir;
+
+        if(!dir.exists()){
+            dir.mkdirs();
+        }
     }
 
     @Override
@@ -48,15 +55,15 @@ public class ShuffleReceiver extends Server {
 
             InetSocketAddress remoteAddress = (InetSocketAddress)socketChannel.getRemoteAddress();
 
-            File file = new File(LocalConfiguration.dir_ShuffleReceiver+
+            File file = new File(dir+File.separator+
                     remoteAddress.getHostName() + "_" + remoteAddress.getPort());
 
-            FileChannel fileChannel = new FileOutputStream(file).getChannel();
+            FileChannel fileChannel = new FileOutputStream(file,true).getChannel();
             fileMap.put(key1, fileChannel);
 
-            System.out.println(socketChannel.getRemoteAddress() + "连接成功...");
+            //System.out.println(socketChannel.getRemoteAddress() + "连接成功...");
 
-            writeToClient(socketChannel);
+            //writeToClient(socketChannel);
 
 
         } catch (IOException e){
@@ -91,18 +98,10 @@ public class ShuffleReceiver extends Server {
                 }
                 // 调用close为-1 到达末尾
                 if (num == -1) {
-                    try {
-                        fileChannel.close();
-                        System.out.println("上传完毕");
-                        buffer.put((socketChannel.getRemoteAddress() + "上传成功").getBytes());
-                        buffer.clear();
-                        socketChannel.write(buffer);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
                     // 只有调用cancel才会真正从已选择的键的集合里面移除，否则下次select的时候又能得到
                     // 一端close掉了，其对端仍然是可读的，读取得到EOF，返回-1
                     key.cancel();
+
                     return;
                 }
                 // Channel的read方法可能返回0，返回0并不一定代表读取完了。
@@ -115,11 +114,33 @@ public class ShuffleReceiver extends Server {
 
     }
 
+    @Override
+    protected boolean setTerminated() {
+        if (Slave$.MODULE$.terminate_Receiver()){
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
     private void writeToClient(SocketChannel socketChannel) throws IOException {
         buffer.clear();
         buffer.put((socketChannel.getRemoteAddress() + "连接成功").getBytes());
         buffer.flip();
         socketChannel.write(buffer);
         buffer.clear();
+    }
+
+    @Override
+    public void run() {
+        try {
+            startServer();
+
+            selector.close();
+            serverChannel.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

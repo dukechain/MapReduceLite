@@ -14,42 +14,44 @@ import scala.collection.mutable.ListBuffer
  */
 class Mapper extends Runnable {
 
-  var jobconfig: JobConfiguration = null;
+  var mapper_id: Long = 0
+  var jobconfig: JobConfiguration = null
 
-  def this(jobConfiguration: JobConfiguration) {
+  var directory_mapoutput = ""
+
+  def this(jobConfiguration: JobConfiguration, mapper_id: Long) {
     this()
     jobconfig = jobConfiguration
+    this.mapper_id = mapper_id
+    directory_mapoutput = LocalConfiguration.dir_ShuffleSender + File.separator + jobconfig.jobID + File.separator
   }
 
   def mapper(inputfile: File, inputFormat: InputFormat, mapFunction: Object, intermediate_outputFormat: OutputFormat): Unit = {
 
-    //val bw = new BufferedWriter(new FileWriter(outputfile))
-
-    //val rf = inputFormat.asInstanceOf[RecordFormat]
-
-    //inputFormat.load(inputfile)
-
-    //val intermediate_outputFormat = new RecordFormat[String,Int]
-    var inter_outputDir = new File(LocalConfiguration.dir_mapoutput + "out")
+    /*val dir_mapoutput = LocalConfiguration.dir_ShuffleSender + File.separator + jobconfig.jobID + File.separator
+    var inter_outputDir = new File(dir_mapoutput)
 
     if (!inter_outputDir.exists()) {
       inter_outputDir.mkdirs()
-    }
+    }*/
 
     var intermediate_writer_list = new ListBuffer[OutputWriter]
 
     for (i <- 1 to jobconfig.numofReduceTasks) {
       var inter_writer = intermediate_outputFormat.getDataWrite()
 
-      //val intermediate_outputfile = new File(LocalConfiguration.dir_mapoutput + "out")
-      //intermediate_writer.open(intermediate_outputfile)
-      val intermediate_outputfile = new File(LocalConfiguration.dir_mapoutput +
-        "out" + File.separator + GlobalConfiguration.slave_address_list.get(i-1))
+      val dir_mapoutput = directory_mapoutput + GlobalConfiguration.slave_address_list.get(i - 1)
+      var inter_outputDir = new File(dir_mapoutput)
+
+      if (!inter_outputDir.exists()) {
+        inter_outputDir.mkdirs()
+      }
+
+      val intermediate_outputfile = new File(dir_mapoutput + File.separator + mapper_id)
 
       inter_writer.open(intermediate_outputfile)
 
       intermediate_writer_list += inter_writer
-
     }
 
     inputFormat.getDataReader().read(inputfile)
@@ -61,11 +63,9 @@ class Mapper extends Runnable {
 
         var key = record.key.asInstanceOf[String]
 
-
-
         var slave_index = jobconfig.partition.hashBucket(key, jobconfig.numofReduceTasks)
 
-        System.out.println(key + "   "+jobconfig.partition.hashCode(key)+"   "+slave_index)
+        //System.out.println(key + "   " + jobconfig.partition.hashCode(key) + "   " + slave_index)
 
         intermediate_writer_list(slave_index).write(record)
       }

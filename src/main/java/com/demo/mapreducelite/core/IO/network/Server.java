@@ -23,9 +23,7 @@ abstract public class Server {
     abstract protected void accept(SelectionKey key);
     abstract protected void read(SelectionKey key);
 
-    protected void setTerminated() {
-        terminated = true;
-    }
+    abstract protected boolean setTerminated();
 
     public void startServer() throws IOException {
         selector = Selector.open();
@@ -36,7 +34,7 @@ abstract public class Server {
 
         System.out.println("服务器已开启...");
 
-        while (!terminated) {
+        while (!setTerminated()) {
             int num = selector.select();
 
             if (num == 0)
