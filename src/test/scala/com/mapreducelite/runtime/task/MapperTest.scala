@@ -27,8 +27,11 @@ class MapperTest {
     jobConfig = new JobConfiguration()
 
     //jobConfig.jobID = System.currentTimeMillis()
-        jobConfig.mainClassName = "com.demo.mapreducelite.example.WordCount"
-    jobConfig.inputFile = new File("./text.txt")
+    jobConfig.mainClassName = "com.demo.mapreducelite.example.WordCount"
+
+    var url = classOf[MapperTest].getClassLoader.getResource("").getPath();
+
+    jobConfig.inputFile = new File(url+"text.txt")
     jobConfig.inputFormat = new RecordFormat[Int,String]
 
     jobConfig.intermediate_outputFormat = new RecordFormat[String, Int]
