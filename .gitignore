@@ -1,6 +1,5 @@
 classes/*
 target/*
 *.iml
-*.txt
 *~
 .idea*
